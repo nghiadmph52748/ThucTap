@@ -21,7 +21,9 @@ public class UserService {
     }
 
     public UserResponse getUserById(Integer id) {
-        return userRepository.findById(id).map(UserResponse::new).orElse(null);
+        if (id == null) throw new ApiException("User id must not be null", "400");
+        return userRepository.findById(id).map(UserResponse::new)
+                .orElseThrow(() -> new ApiException("User not found", "410"));
     }
 
     public void createUser(UserRequest request){
@@ -30,15 +32,16 @@ public class UserService {
     }
 
     public void updateUser(Integer id, UserRequest request){
-        UserEntity user = userRepository.findById(id).orElseThrow(() -> new ApiException("User not found", "410"));
-        if (user != null) {
-            user.setFullName(request.getFullName());
-            user.setEmail(request.getEmail());
-            userRepository.save(user);
-        }
+        if (id == null) throw new ApiException("User id must not be null", "400");
+        UserEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ApiException("User not found", "410"));
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        userRepository.save(user);
     }
 
     public void deleteUser(Integer id) {
+        if (id == null) throw new ApiException("User id must not be null", "400");
         userRepository.deleteById(id);
     }
 }

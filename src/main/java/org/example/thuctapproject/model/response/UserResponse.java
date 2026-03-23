@@ -11,10 +11,12 @@ import org.example.thuctapproject.entity.UserEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
+    private Integer id;
     private String fullName;
     private String email;
 
     public UserResponse(UserEntity user) {
+        this.id = user.getId();
         this.fullName = user.getFullName();
         this.email = user.getEmail();
     }

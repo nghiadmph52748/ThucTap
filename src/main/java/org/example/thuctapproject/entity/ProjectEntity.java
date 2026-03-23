@@ -12,23 +12,18 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
-public class UserEntity {
+@Table(name = "projects")
+public class ProjectEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 
     @Size(max = 100)
     @NotNull
-    @Column(name = "full_name", nullable = false, length = 100)
-    private String fullName;
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
 
-    @Size(max = 100)
-    @NotNull
-    @Column(name = "email", nullable = false, length = 100)
-    private String email;
-
-    @OneToMany(mappedBy = "assignee")
+    @OneToMany(mappedBy = "project")
     private Set<TaskEntity> tasks = new LinkedHashSet<>();
+
 }
