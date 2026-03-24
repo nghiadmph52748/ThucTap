@@ -1,5 +1,7 @@
 package org.example.thuctapproject.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.thuctapproject.entity.RoleEntity;
 import org.example.thuctapproject.entity.UserEntity;
 import org.example.thuctapproject.entity.UserRoleEntity;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth", description = "Authentication (login/register) endpoints")
 public class AuthController {
 
     @Autowired
@@ -48,6 +51,7 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
+    @Operation(summary = "Login", description = "Authenticate by email/password and receive a JWT token")
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -62,6 +66,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "Register", description = "Register a new user with default role USER")
     public ResponseEntity<ApiResponse<?>> register(@RequestBody UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ApiException("Email already exists", "400");

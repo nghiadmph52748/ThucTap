@@ -48,6 +48,12 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
         http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(auth -> auth
+				// Swagger / OpenAPI
+				.requestMatchers(
+						"/swagger-ui.html",
+						"/swagger-ui/**",
+						"/v3/api-docs/**"
+				).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 // Projects: only MANAGER can create
                 .requestMatchers("/api/projects/add").hasRole("MANAGER")
