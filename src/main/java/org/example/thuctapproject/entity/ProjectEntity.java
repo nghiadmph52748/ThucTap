@@ -15,6 +15,7 @@ import java.util.Set;
 @Table(name = "projects")
 public class ProjectEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     private Integer id;
 

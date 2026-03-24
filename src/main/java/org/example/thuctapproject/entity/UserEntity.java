@@ -29,6 +29,11 @@ public class UserEntity {
     @Column(name = "email", nullable = false, length = 100)
     private String email;
 
+    @Size(max = 255)
+    @NotNull
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
+
     @OneToMany(mappedBy = "assignee")
     private Set<TaskEntity> tasks = new LinkedHashSet<>();
 }

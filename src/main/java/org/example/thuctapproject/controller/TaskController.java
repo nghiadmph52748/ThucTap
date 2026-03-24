@@ -35,6 +35,11 @@ public class TaskController {
         return ResponseEntity.ok(ApiResponse.success(taskService.getTaskById(id), "Detail task with id: " + id));
     }
 
+    @GetMapping("/my")
+    public ResponseEntity<ApiResponse<?>> myTasks() {
+        return ResponseEntity.ok(ApiResponse.success(taskService.getMyTasks()));
+    }
+
     @PostMapping("/add")
     public ResponseEntity<ApiResponse<?>> add(@Valid @RequestBody TaskRequest request) {
         taskService.createTask(request);

@@ -11,6 +11,9 @@ import org.example.thuctapproject.repository.ProjectRepository;
 import org.example.thuctapproject.repository.TaskRepository;
 import org.example.thuctapproject.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,10 +41,35 @@ public class TaskService {
         return taskRepository.findAllByAssignee_Id(userId).stream().map(TaskResponse::new).toList();
     }
 
+    public List<TaskResponse> getMyTasks(){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) throw new ApiException("Unauthenticated", "401");
+        String email = auth.getName();
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ApiException("User not found", "404"));
+        return taskRepository.findAllByAssignee_Id(user.getId()).stream().map(TaskResponse::new).toList();
+    }
+
     public TaskResponse getTaskById(Integer id){
         if (id == null) throw new ApiException("Task id must not be null", "400");
-        return new TaskResponse(taskRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Task not found", "404")));
+        TaskEntity task = taskRepository.findById(id)
+                .orElseThrow(() -> new ApiException("Task not found", "404"));
+        // Enforce that USER can only view their own tasks
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean isManager = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).anyMatch(r -> r.equals("ROLE_MANAGER"));
+            if (!isManager) {
+                String email = auth.getName();
+                Integer currentUserId = userRepository.findByEmail(email)
+                        .map(UserEntity::getId)
+                        .orElse(null);
+                Integer assigneeId = task.getAssignee() != null ? task.getAssignee().getId() : null;
+                if (currentUserId == null || assigneeId == null || !currentUserId.equals(assigneeId)) {
+                    throw new ApiException("Forbidden: You can only view your own tasks", "403");
+                }
+            }
+        }
+        return new TaskResponse(task);
     }
 
     public void createTask(TaskRequest request){
