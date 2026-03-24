@@ -1,5 +1,6 @@
 package org.example.thuctapproject.exception;
 
+import org.example.thuctapproject.model.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,45 +12,40 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // Bắt lỗi validate @Valid
+    // Handle @Valid validation errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "FAILED");
-        response.put("code", "VALIDATION_ERROR");
-        response.put("errors", errors);
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        ApiResponse<Map<String, String>> body = ApiResponse.of(400, "Validation failed", errors);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    // Bắt lỗi do bạn tự throw new ApiException
+    // Handle custom ApiException thrown in services/controllers
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<?> handleApiException(ApiException ex) {
-        Map<String, Object> response = new HashMap<>();
-        if (ex.getCode().equals("510")){
-            response.put("status", "FAILED");
-            response.put("code", ex.getCode());
-            response.put("message", "Lỗi unique do " + ex.getMessage());
-        }else {
-            response.put("status", "FAILED");
-            response.put("code", ex.getCode());
-            response.put("message", ex.getMessage());
+    public ResponseEntity<ApiResponse<Object>> handleApiException(ApiException ex) {
+        int code;
+        try {
+            code = Integer.parseInt(ex.getCode());
+        } catch (Exception ignore) {
+            code = 400;
         }
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        HttpStatus status = switch (code) {
+            case 404 -> HttpStatus.NOT_FOUND;
+            case 403 -> HttpStatus.FORBIDDEN;
+            case 500 -> HttpStatus.INTERNAL_SERVER_ERROR;
+            default -> HttpStatus.BAD_REQUEST;
+        };
+        ApiResponse<Object> body = ApiResponse.error(code, ex.getMessage());
+        return new ResponseEntity<>(body, status);
     }
 
-    // Bắt tất cả lỗi còn lại
+    // Catch-all handler
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleAll(Exception ex) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "FAILED");
-        response.put("code", "INTERNAL_ERROR");
-        response.put("message", ex.getMessage());
-
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiResponse<Object>> handleAll(Exception ex) {
+        ApiResponse<Object> body = ApiResponse.error(500, ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

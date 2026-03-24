@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Entity
@@ -20,6 +22,10 @@ public class TaskEntity {
     @NotNull
     @Column(name = "title", nullable = false)
     private String title;
+
+    @NotNull
+    @Column(name = "deadline", nullable = false)
+    private LocalDate deadline;
 
     @NotNull
     @Enumerated(EnumType.STRING)

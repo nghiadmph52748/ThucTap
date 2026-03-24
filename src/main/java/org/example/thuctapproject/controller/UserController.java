@@ -1,9 +1,10 @@
 package org.example.thuctapproject.controller;
 
 import org.example.thuctapproject.model.request.UserRequest;
-import org.example.thuctapproject.model.response.ResponseObject;
+import org.example.thuctapproject.model.response.ApiResponse;
 import org.example.thuctapproject.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,30 +16,30 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/list")
-    public ResponseObject<?> getAll() {
-        return new ResponseObject<>(userService.getAllUser());
+    public ResponseEntity<ApiResponse<?>> getAll() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getAllUser()));
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseObject<?> detail(@PathVariable Integer id) {
-        return new ResponseObject<>(userService.getUserById(id), "Detail user with id: " + id);
+    public ResponseEntity<ApiResponse<?>> detail(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id), "Detail user with id: " + id));
     }
 
     @PostMapping("/add")
-    public ResponseObject<?> add(@RequestBody UserRequest request) {
+    public ResponseEntity<ApiResponse<?>> add(@RequestBody UserRequest request) {
         userService.createUser(request);
-        return new ResponseObject<>(true, request, "Add user successfully");
+        return new ResponseEntity<>(ApiResponse.of(201, "Add user successfully", request), HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> update(@RequestBody UserRequest request, @PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<?>> update(@RequestBody UserRequest request, @PathVariable Integer id) {
         userService.updateUser(id, request);
-        return ResponseEntity.ok(new ResponseObject<>(true, request, "Update user successfully"));
+        return ResponseEntity.ok(ApiResponse.success(request, "Update user successfully"));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseObject<?> delete(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<?>> delete(@PathVariable Integer id) {
         userService.deleteUser(id);
-        return new ResponseObject<>(true, null, "Delete user successfully");
+        return ResponseEntity.ok(ApiResponse.success(null, "Delete user successfully"));
     }
 }

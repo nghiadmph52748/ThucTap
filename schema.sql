@@ -16,6 +16,7 @@ CREATE TABLE projects (
 CREATE TABLE tasks (
     id INT PRIMARY KEY IDENTITY(1,1),
     title VARCHAR(255) NOT NULL,
+    deadline DATE NOT NULL DEFAULT GETDATE(),
     status VARCHAR(20) NOT NULL,
     assignee_id INT,
     project_id INT NOT NULL,

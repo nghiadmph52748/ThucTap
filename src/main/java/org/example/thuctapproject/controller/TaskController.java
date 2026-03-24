@@ -2,9 +2,11 @@ package org.example.thuctapproject.controller;
 
 import jakarta.validation.Valid;
 import org.example.thuctapproject.model.request.TaskRequest;
-import org.example.thuctapproject.model.response.ResponseObject;
+import org.example.thuctapproject.model.response.ApiResponse;
 import org.example.thuctapproject.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,52 +16,52 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping("/list")
-    public ResponseObject<?> getAll() {
-        return new ResponseObject<>(taskService.getAllTask());
+    public ResponseEntity<ApiResponse<?>> getAll() {
+        return ResponseEntity.ok(ApiResponse.success(taskService.getAllTask()));
     }
 
     @GetMapping("/list-by-user/{id}")
-    public ResponseObject<?> getAllByUser(@PathVariable Integer id) {
-        return new ResponseObject<>(taskService.getTaskByUserId(id));
+    public ResponseEntity<ApiResponse<?>> getAllByUser(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(taskService.getTaskByUserId(id)));
     }
 
     @GetMapping("/list-by-project/{id}")
-    public ResponseObject<?> getAllByProject(@PathVariable Integer id) {
-        return new ResponseObject<>(taskService.getTaskByProjectId(id));
+    public ResponseEntity<ApiResponse<?>> getAllByProject(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(taskService.getTaskByProjectId(id)));
     }
 
     @GetMapping("/detail/{id}")
-    public ResponseObject<?> detail(@PathVariable Integer id) {
-        return new ResponseObject<>(taskService.getTaskById(id), "Detail task with id: " + id);
+    public ResponseEntity<ApiResponse<?>> detail(@PathVariable Integer id) {
+        return ResponseEntity.ok(ApiResponse.success(taskService.getTaskById(id), "Detail task with id: " + id));
     }
 
     @PostMapping("/add")
-    public ResponseObject<?> add(@Valid @RequestBody TaskRequest request) {
+    public ResponseEntity<ApiResponse<?>> add(@Valid @RequestBody TaskRequest request) {
         taskService.createTask(request);
-        return new ResponseObject<>(true, request, "Add task successfully");
+        return new ResponseEntity<>(ApiResponse.of(201, "Add task successfully", request), HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseObject<?> update(@Valid @RequestBody TaskRequest request, @PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<?>> update(@Valid @RequestBody TaskRequest request, @PathVariable Integer id) {
         taskService.updateTask(id, request);
-        return new ResponseObject<>(true, request, "Update task successfully");
+        return ResponseEntity.ok(ApiResponse.success(request, "Update task successfully"));
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseObject<?> delete(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<?>> delete(@PathVariable Integer id) {
         taskService.deleteTask(id);
-        return new ResponseObject<>(true, null, "Delete task successfully");
+        return ResponseEntity.ok(ApiResponse.success(null, "Delete task successfully"));
     }
 
     @PutMapping("/assign/{taskId}/{userId}")
-    public ResponseObject<?> assignTask(@PathVariable Integer taskId, @PathVariable Integer userId) {
+    public ResponseEntity<ApiResponse<?>> assignTask(@PathVariable Integer taskId, @PathVariable Integer userId) {
         taskService.assignTask(taskId, userId);
-        return new ResponseObject<>(true, null, "Assign task successfully");
+        return ResponseEntity.ok(ApiResponse.success(null, "Assign task successfully"));
     }
 
     @PutMapping("/change-status/{taskId}/{status}")
-    public ResponseObject<?> changeStatus(@PathVariable Integer taskId, @PathVariable String status) {
+    public ResponseEntity<ApiResponse<?>> changeStatus(@PathVariable Integer taskId, @PathVariable String status) {
         taskService.changeStatus(taskId, status);
-        return new ResponseObject<>(true, null, "Change status successfully");
+        return ResponseEntity.ok(ApiResponse.success(null, "Change status successfully"));
     }
 }
