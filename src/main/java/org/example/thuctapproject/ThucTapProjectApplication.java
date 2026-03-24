@@ -8,5 +8,4 @@ public class ThucTapProjectApplication {
     public static void main(String[] args) {
         SpringApplication.run(ThucTapProjectApplication.class, args);
     }
-
 }
