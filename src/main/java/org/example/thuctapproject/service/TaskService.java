@@ -41,33 +41,57 @@ public class TaskService {
     public TaskResponse getTaskById(Integer id){
         if (id == null) throw new ApiException("Task id must not be null", "400");
         return new TaskResponse(taskRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Task not found", "410")));
+                .orElseThrow(() -> new ApiException("Task not found", "404")));
     }
 
     public void createTask(TaskRequest request){
-        // Validate required related IDs (also enforced by @Valid at controller)
         if (request.getProject() == null) throw new ApiException("Project id must not be null", "400");
-        if (request.getAssignee() == null) throw new ApiException("Assignee id must not be null", "400");
-
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setTitle(request.getTitle());
         taskEntity.setStatus(parseStatus(request.getStatus()));
-
-        UserEntity assignee = userRepository.findById(request.getAssignee())
-                .orElseThrow(() -> new ApiException("Assignee not found", "410"));
+        if (request.getAssignee() != null && request.getAssignee() > 0) {
+            UserEntity assignee = userRepository.findById(request.getAssignee())
+                    .orElseThrow(() -> new ApiException("Assignee not found", "404"));
+            taskEntity.setAssignee(assignee);
+        }
         ProjectEntity project = projectRepository.findById(request.getProject())
-                .orElseThrow(() -> new ApiException("Project not found", "410"));
-
-        taskEntity.setAssignee(assignee);
+                .orElseThrow(() -> new ApiException("Project not found", "404"));
         taskEntity.setProject(project);
-
         taskRepository.save(taskEntity);
     }
+
+    public void assignTask(Integer taskId, Integer userId) {
+        if (taskId == null) throw new ApiException("Task id must not be null", "400");
+        if (userId == null) throw new ApiException("User id must not be null", "400");
+        TaskEntity taskEntity = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ApiException("Task not found", "404"));
+        UserEntity assignee = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException("Assignee not found", "404"));
+        Integer projectId = taskEntity.getProject().getId();
+        boolean isMember = projectRepository.existsByIdAndUsers_Id(projectId, userId);
+        if (!isMember) {
+            throw new ApiException("User does not belong to the task's project", "403");
+        }
+        taskEntity.setAssignee(assignee);
+        taskRepository.save(taskEntity);
+    }
+
+    public void changeStatus(Integer taskId, String status) {
+        if (taskId == null) throw new ApiException("Task id must not be null", "400");
+        if (taskRepository.findById(taskId).get().getStatus() == TaskStatus.DONE) {
+            throw new ApiException("Cannot change status of a completed task", "400");
+        }
+        TaskEntity taskEntity = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ApiException("Task not found", "404"));
+        taskEntity.setStatus(parseStatus(status));
+        taskRepository.save(taskEntity);
+    }
+
 
     public void updateTask(Integer id, TaskRequest request){
         if (id == null) throw new ApiException("Task id must not be null", "400");
         TaskEntity taskEntity = taskRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Task not found", "410"));
+                .orElseThrow(() -> new ApiException("Task not found", "404"));
 
         // Update fields explicitly
         taskEntity.setTitle(request.getTitle());
@@ -76,13 +100,13 @@ public class TaskService {
         Integer assigneeId = request.getAssignee();
         if (assigneeId == null) throw new ApiException("Assignee id must not be null", "400");
         UserEntity assignee = userRepository.findById(assigneeId)
-                .orElseThrow(() -> new ApiException("Assignee not found", "410"));
+                .orElseThrow(() -> new ApiException("Assignee not found", "404"));
         taskEntity.setAssignee(assignee);
 
         Integer projectId = request.getProject();
         if (projectId == null) throw new ApiException("Project id must not be null", "400");
         ProjectEntity project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ApiException("Project not found", "410"));
+                .orElseThrow(() -> new ApiException("Project not found", "404"));
         taskEntity.setProject(project);
 
         taskRepository.save(taskEntity);
@@ -98,7 +122,7 @@ public class TaskService {
         try {
             return TaskStatus.valueOf(status.trim().toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new ApiException("Invalid status value: " + status, "400");
+            throw new ApiException("Invalid status value: " + status, "404");
         }
     }
 }

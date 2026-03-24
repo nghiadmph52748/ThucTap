@@ -26,4 +26,12 @@ public class ProjectEntity {
     @OneToMany(mappedBy = "project")
     private Set<TaskEntity> tasks = new LinkedHashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "project_users",
+            joinColumns = @JoinColumn(name = "project_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<UserEntity> users = new LinkedHashSet<>();
+
 }

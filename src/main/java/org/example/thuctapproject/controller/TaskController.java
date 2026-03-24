@@ -50,4 +50,16 @@ public class TaskController {
         taskService.deleteTask(id);
         return new ResponseObject<>(true, null, "Delete task successfully");
     }
+
+    @PutMapping("/assign/{taskId}/{userId}")
+    public ResponseObject<?> assignTask(@PathVariable Integer taskId, @PathVariable Integer userId) {
+        taskService.assignTask(taskId, userId);
+        return new ResponseObject<>(true, null, "Assign task successfully");
+    }
+
+    @PutMapping("/change-status/{taskId}/{status}")
+    public ResponseObject<?> changeStatus(@PathVariable Integer taskId, @PathVariable String status) {
+        taskService.changeStatus(taskId, status);
+        return new ResponseObject<>(true, null, "Change status successfully");
+    }
 }

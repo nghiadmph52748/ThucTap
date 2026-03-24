@@ -23,7 +23,7 @@ public class ProjectService {
     public ProjectResponse getProjectById(Integer id){
         if (id == null) throw new ApiException("Project id must not be null", "400");
         return projectRepository.findById(id).map(ProjectResponse::new)
-                .orElseThrow(() -> new ApiException("Project not found", "411"));
+                .orElseThrow(() -> new ApiException("Project not found", "404"));
     }
 
     public ProjectResponse createProject(ProjectRequest request){
@@ -34,7 +34,7 @@ public class ProjectService {
     public void updateProject(Integer id, ProjectRequest request){
         if (id == null) throw new ApiException("Project id must not be null", "400");
         ProjectEntity projectEntity = projectRepository.findById(id)
-                .orElseThrow(() -> new ApiException("Project not found", "410"));
+                .orElseThrow(() -> new ApiException("Project not found", "404"));
         projectEntity.setName(request.getName());
         projectRepository.save(projectEntity);
     }
